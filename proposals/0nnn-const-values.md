@@ -19,7 +19,7 @@ The first step towards building out support for compile-time constructs in Swift
 
 ## **Proposed Solution**
 
-The proposal is to add a new attribute `@const` that will be used to annotate properties, local variables, function parameters, and function declarations as having an additional requirement to be known at compile time or be able to be evaluated at compile time to a constant value. If a `@const` property or variable is initialized with a runtime value, the compiler will emit an error. The `@const` attribute can also be used to annotate specific expressions which must be compile-time evaluable to a constant value by the compiler. If a `@const` expression or function contain code that the compiler cannot symbolically evaluate at compile-time for all possible constant-value inputs, the compiler will emit an error. The attribute participates in name mangling. Accesses to `@const` variables are done via an addressor function which returns a consistent address of an immutable value. 
+The proposal is to add a new attribute `@const` that will be used to annotate properties, local variables, function parameters, and function declarations as having an additional requirement to be known at compile time or be able to be evaluated at compile time to a constant value. If a `@const` property or variable is initialized with a runtime value, the compiler will emit an error. The `@const` attribute can also be used to annotate specific expressions which must be compile-time evaluable to a constant value by the compiler. If a `@const` expression or function contain code that the compiler cannot symbolically evaluate at compile-time for all possible constant-value inputs, the compiler will emit an error. Accesses to `@const` variables are done via an addressor function which returns a consistent address of an immutable value.
 
 For example, a `@const` property can provide the compiler and relevant tooling build-time knowledge of a type-specific value:
 
@@ -180,8 +180,8 @@ The requirement that values of `@const` global values, properties and parameters
 * Enum cases with no associated values.
 * Certain standard library types that are expressible with literal values.
     * Integer and Floating-Point types (`Int`, `Float`, `Double`, `Half`), `String` (excluding interpolated strings), `Bool`.
-* `InlineArray`s initialized with literal values consisting of `@const` elements of above types.
-    * The property/variable must be explicitly `InlineArray`, with the values inferred to be of  `Array` type currently not supported.
+* `Vector`s initialized with literal values consisting of `@const` elements of above types.
+    * The property/variable must be explicitly `Vector`, with the values inferred to be of  `Array` type currently not supported.
 * Tuple literals consisting of the above list items.
 
 This list will expand in the future to include more literal-value kinds or potential new compile-time valued constructs. For more, see **Future Directions**.
@@ -357,7 +357,7 @@ SIL provides a natural surface for engineering a general-purpose compile-time ev
 This decision has several implications worth highlighting:
 
 * Since Macros are expanded before source-code is lowered into SIL, Macros cannot receive evaluated compile-time constant values as parameters. Macros are free to take `@const` parameter values and expressions and expand them into other values expected to be compile-time-known.
-* Types cannot be parameterized with compile-time values. For example, for `InlineArray` while the specification of the length generic parameter may benefit from being enforced as `@const`, the value itself is not known to the type system, meaning all `InlineArray` types are ‘opaque’ w.r.t. the length. 
+* Types cannot be parameterized with compile-time values. For example, for `Vector` while the specification of the length generic parameter may benefit from being enforced as `@const`, the value itself is not known to the type system, meaning all `Vector` types are ‘opaque’ w.r.t. the length.
 * `#if` expansion cannot be predicated on compile-time boolean values, since `#if` expansion is handled prior to SIL lowering. 
 
 Also, see the ‘Placing `@const` on the declaration type’ section of considered alternatives for a discussion on why this proposal centers on capturing compile-time **values** in a way not captured by the type system itself. i.e. why `@const`-ness does not affect the type of a value in a way that e.g. optionality does. 
@@ -542,7 +542,7 @@ Followup work to improve the breadth and power of compile-time constructs in Swi
 * Allowing for String Interpolation in Strings to be valid for `@const` Strings when the interpolated values are known at compile-time.
 * Expanding the set of available standard library functionality.
 * More of various StdLib operations, e.g. Trigonometric functions.
-* Making available a wider set of the  `InlineArray` API surface, e.g. `.count` .
+* Making available a wider set of the  `Vector` API surface, e.g. `.count` .
 
 #### Toolchain support for extracting compile-time values at build time.
 
