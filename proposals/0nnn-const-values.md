@@ -91,7 +91,7 @@ To have the compiler enforce the property that the initial value of the declared
 
 #### Global variable or Property `@const` attribute
 
-A stored property on a `struct` or a `class` can be marked with a `@const` attribute to indicate that its value is known at compile-time.
+A `static` property on a `struct` or a `class` can be marked with a `@const` attribute to indicate that its value is known at compile-time.
 
 ```
 @const let specialUpperLimit: Int = 256
@@ -542,7 +542,8 @@ Followup work to improve the breadth and power of compile-time constructs in Swi
 * Allowing for String Interpolation in Strings to be valid for `@const` Strings when the interpolated values are known at compile-time.
 * Expanding the set of available standard library functionality.
 * More of various StdLib operations, e.g. Trigonometric functions.
-* Making available a wider set of the  `Vector` API surface, e.g. `.count` .
+* Making available a wider set of the  `Vector` API surface, e.g. `.count`.
+* Transforming runtime fault statements (e.g. `assert`, `fatalError` etc.) into compile-time error diagnostics
 
 #### Toolchain support for extracting compile-time values at build time.
 
