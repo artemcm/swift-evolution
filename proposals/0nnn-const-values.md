@@ -89,7 +89,7 @@ To have the compiler enforce the property that the initial value of the declared
 
 ### Attribute annotations
 
-#### Global variable or Property `@const` attribute
+#### Global variable or `static` Property `@const` attribute
 
 A `static` property on a `struct` or a `class` can be marked with a `@const` attribute to indicate that its value is known at compile-time.
 
@@ -100,7 +100,7 @@ struct Foo {
 }
 ```
 
-The value of such a property must be default-initialized with a compile-time-known value, unlike a plain `let` property, which can also be assigned a value in the type's initializer. _`@const` properties do not participate in the type's memory layout and their value holds for *all instances* of the type_, similarly to a `static` property but with an added compile-time known immutable value guarantee enforced by the compiler. 
+The value of such a property must be default-initialized with a compile-time-known value, unlike a plain `let` property, which can also be assigned a value in the type's initializer. `@const` properties do not participate in the type's memory layout and their value holds for *all instances* of the type_, similarly to a plain `static` property but with an added compile-time known immutable value guarantee enforced by the compiler. 
 
 The computed compile-time value of a `@const public` global variable or a property is a _part of the module’s API_ and will be captured in the corresponding declaration appearing in the textual interface of a resilient module.
 
@@ -147,17 +147,17 @@ This capability allows expressing API surfaces which require compile-time inputs
 
 #### Protocol `@const` property requirement
 
-A protocol author may require conforming types to default initialize a given property with a compile-time-known value by specifying it as `@const`` let` in the protocol definition. For example:
+A protocol author may require conforming types to default initialize a given property with a compile-time-known value by specifying it as `@const stattic let` in the protocol definition. For example:
 
 ```
 protocol NeedsConstGreeting {
-  @const let greeting: String
+  @const static let greeting: String
 }
 ```
 
-Similarly to plain `@const` properties, a conformance-implementing type then shares a single, known, immutable value of this property per-type with the  `static` keyword implied for this property. 
+Similarly to any other `@const` properties in structs and classes, a conformance-implementing type then shares a single, known, immutable value of this property per-type.
 
-Compile-time guarantees mean that Swift now allows for `let` property requirement in protocol definitions as long as they are `@const`. 
+Compile-time guarantees mean that Swift will now allow for `let` property requirements in protocol definitions as long as they are `@const static`. 
 
 Unlike other property declarations on protocols that require the use of `var` and explicit specification of whether the property must provide a getter `{ get }` or also a setter `{ get set }`, using `var` for build-time-known properties whose values are known to be fixed at runtime is counter-intuitive. Moreover, `@const` implies the lack of a run-time setter and an implicit presence of the value getter.
 If a conforming type initializes greeting with something other than a compile-time-known value, a compilation error is produced:
@@ -165,11 +165,11 @@ If a conforming type initializes greeting with something other than a compile-ti
 ```
 struct Foo: NeedsConstGreeting {
   // 👍
-  @const let greeting = "Hello, Foo"
+  @const static let greeting = "Hello, Foo"
 }
 struct Bar: NeedsConstGreeting {
   // error: ❌ 'greeting' must be initialized with a const value
-  @const let greeting = "\(Bool.random ? "Hello" : "Goodbye"), Bar"
+  @const static let greeting = "\(Bool.random ? "Hello" : "Goodbye"), Bar"
 }
 ```
 
