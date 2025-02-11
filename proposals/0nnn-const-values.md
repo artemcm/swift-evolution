@@ -506,6 +506,23 @@ This proposal is purely additive (adding new attributes), without impact on sour
 
 The new `@const` attribute does not affect name mangling. The value of `public` `@const` properties and globals is a part of a module's API. See discussion on **Memory Placement** for details.
 
+Although `@const` values do not participate in the type system, they are a part of a resilient library's ABI: acutal specific values of global `@const` variables and `public` `static` properties may be relied on by the client to select code-paths only valid for those values. Changing the values of such variables and properties could break critical invariants relied on by clients. Consider the simple example: 
+```
+// Library
+@const public let featureEnabled = true
+public func specialNewFunctionality() {
+  precondition(featureEnabled)
+  // ...
+}
+```
+```
+// Client
+if featureEnabled {
+  specialNewFunctionality()
+}
+```
+Swapping out the library re-compiled with the value of `featureEnabled` changed to `false`, but without re-compiling the client would lead to a runtime failure. This means that for a resilient Swift module, changing the value of a `@const` global variable or static property constitutes an ABI break. Similarly, changing the return value of a `@const` function for a fixed set of inputs would constitute an ABI break - though the implementation may be changed as long as it does not affect output.
+
 ## **Future Directions and Roadmap**
 
 It is a goal of this proposal to establish a baseline feature with a clear direction for expanding the scope of compile-time computation possible in Swift in the future. The end state of these changes will:
