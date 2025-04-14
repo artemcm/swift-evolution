@@ -180,9 +180,9 @@ The requirement that values of `@const` global values, properties and parameters
 * Enum cases with no associated values.
 * Certain standard library types that are expressible with literal values.
     * Integer and Floating-Point types (`Int`, `Float`, `Double`, `Half`), `String` (excluding interpolated strings), `Bool`.
-* `Vector`s initialized with literal values consisting of `@const` elements of above types.
-    * The property/variable must be explicitly `Vector`, with the values inferred to be of  `Array` type currently not supported.
-* Tuple literals consisting of the above list items.
+    * `InlineArray`s initialized with literal values consisting of `@const` elements of above types.
+        * The property/variable must be explicitly `InlineArray`, with the values inferred to be of  `Array` type currently not supported.
+* Tuples consisting of the above list items.
 
 This list will expand in the future to include more literal-value kinds or potential new compile-time valued constructs. For more, see **Future Directions**.
 
@@ -199,7 +199,7 @@ struct DiscoverableTestEntries {
 }
 ```
 
- `@const` values of a Function type _are not able to participate in `@const` expressions_ or be called from `@const` functions: although they constitute an individual compile-time-known value, in that the value is an immutable reference to a specific function’s address, the exact bit-pattern of such address value at runtime is not determined until link time. `@const` is a guarantee that the address is of a _specific function known to the compiler_, which, by the start of the user’s program, will have the correct expected value that will not require lazy initialization. 
+`@const` values of a Function type _are not able to participate in `@const` expressions_ or be called from `@const` functions: although they constitute an individual compile-time-known value, in that the value is an immutable reference to a specific function’s address, the exact bit-pattern of such address value at runtime is not determined until link time. `@const` is a guarantee that the address is of a _specific function known to the compiler_, which, by the start of the user’s program, will have the correct expected value that will not require lazy initialization.
 
 The `@convention(c)` requirement allows the set of possible function values to be currently restricted to the use-case of trivial function pointers, without allowing e.g. closures which capture arbitrary program state. The scope of the kind of function-type values can be `@const` may be expanded in the future.
 
@@ -251,13 +251,15 @@ struct Modifier {
 
 Values declared in imported modules do not expose their value as a part of the module interface unless they are `@const`, meaning the compiler is only able to infer compile-time values of non-`@const` declarations declared in the same module.
 
-The compiler supports compile-time evaluation of expressions consisting of a minimal set of binary expressions on supported types composed of standard library integer and floating-point operators and user-defined `@const` functions (non-recursive).
+The compiler supports compile-time evaluation of expressions consisting of a _minimal set of binary expressions_ on supported types composed of standard library integer and floating-point operators and user-defined `@const` functions (non-recursive).
 
 * Supported compile-time-evaluable integer and floating-point binary operations on `@const` and literal values:
     * add, and, or, mul, sdiv, srem, sub, udiv, urem, xor
     * cmp_eq, cmp_ne, cmp_sle, cmp_slt, cmp_sge, cmp_sgt, cmp_ule, cmp_ult, cmp_uge, cmp_ugt
 
-This proposal’s goal is to establish a baseline compile-time value feature which can grow in scope and functionality over time. See ‘**Future Directions and Roadmap’** section for more details. 
+This proposal’s goal is to establish a baseline compile-time value feature which can grow in scope and functionality over time. The above set of operations will be guaranteed to be compile-time evaluable by the compiler for the initial version of the feature. Alongside this initial set, we plan to also introduce an experimental compiler feature flag that expands the scope of supported Swift constructs and expression kinds in `@const` expressions to include broader experimental, work-in-progress preview compile-time evaluation capabilities while they are under development and are not ready to be declared fully supported in all future releases - users of this mode will not be able to distribute modules built with this feature enabled which contain `@const` code which is not otherwise `@const`-compliant when the experimental mode is disabled.
+
+See ‘**Future Directions and Roadmap’** section for more details.
 
 #### `@const` initializer expressions
 
@@ -357,7 +359,7 @@ SIL provides a natural surface for engineering a general-purpose compile-time ev
 This decision has several implications worth highlighting:
 
 * Since Macros are expanded before source-code is lowered into SIL, Macros cannot receive evaluated compile-time constant values as parameters. Macros are free to take `@const` parameter values and expressions and expand them into other values expected to be compile-time-known.
-* Types cannot be parameterized with compile-time values. For example, for `Vector` while the specification of the length generic parameter may benefit from being enforced as `@const`, the value itself is not known to the type system, meaning all `Vector` types are ‘opaque’ w.r.t. the length.
+* Types cannot be parameterized with compile-time values. For example, for `InlineArray` while the specification of the length generic parameter may benefit from being enforced as `@const`, the value itself is not known to the type system, meaning all `InlineArray` types are ‘opaque’ w.r.t. the length.
 * `#if` expansion cannot be predicated on compile-time boolean values, since `#if` expansion is handled prior to SIL lowering. 
 
 Also, see the ‘Placing `@const` on the declaration type’ section of considered alternatives for a discussion on why this proposal centers on capturing compile-time **values** in a way not captured by the type system itself. i.e. why `@const`-ness does not affect the type of a value in a way that e.g. optionality does. 
@@ -559,7 +561,7 @@ Followup work to improve the breadth and power of compile-time constructs in Swi
 * Allowing for String Interpolation in Strings to be valid for `@const` Strings when the interpolated values are known at compile-time.
 * Expanding the set of available standard library functionality.
 * More of various StdLib operations, e.g. Trigonometric functions.
-* Making available a wider set of the  `Vector` API surface, e.g. `.count`.
+* Making available a wider set of the  `InlineArray` API surface, e.g. `.count`.
 * Transforming runtime fault statements (e.g. `assert`, `fatalError` etc.) into compile-time error diagnostics
 
 #### Toolchain support for extracting compile-time values at build time.
